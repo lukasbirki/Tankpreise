@@ -1,29 +1,70 @@
-library(plyr)
-library(readr)
-library(tidyverse)
-
-#Merging Data ----
-
-list_price <- list.files(path = "data/2022",
-                            recursive = TRUE,
-                            pattern = "\\.csv$",
-                            full.names = TRUE)
-
-df_price <- readr::read_csv(list_price, id = "file_name")
-names(df_price)
-
-df_stations<- readr::read_csv(file = "data/2022-01-01-stations.csv")
-
-df_stations %>% 
-  filter(city == "Freiburg" | city == "Freiburg (Breisgau") %>% 
-  inner_join(.,df_price, by = c("uuid"="station_uuid")) ->  df_freiburg
-
-names(df_freiburg)
-unique(df_freiburg$street)
-
-write.csv(df_freiburg, "data/merged_freiburg.csv")
+source("scripts/helpers.R")
+readr::read_csv("data/merged_freiburg.csv") -> df
 
 
-# Analysis ----
+#Aggregating prices for every 30 min
 
-#tba.
+df %>% 
+  filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c") %>% 
+  select(date, diesel:e10) %>% 
+  zoo::read.zoo()-> df_1
+
+
+seq.POSIXt(min(df$date), max(df$date), by = "30 min") %>% 
+  as_tibble() %>% zoo::read.zoo(.) -> df_2
+
+
+zoo::merge.zoo(df_1,df_2) %>% 
+  zoo::fortify.zoo() %>% as.tibble %>% 
+  fill(., names(.))-> s
+
+#use case
+
+
+df %>% 
+  filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c") %>% 
+  select(date, diesel:e10) %>% 
+  zoo::read.zoo()-> df_1
+
+
+
+
+
+
+
+
+
+
+df %>% 
+  group_by(date15 = ceiling_date(date, '30 minutes')) %>%
+  summarise(across(diesel:e10, mean, .names = "30_min_{col}"),
+            n = n())
+
+  
+
+
+filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c") %>% 
+  select(date, diesel:e10) -> v0
+
+
+df %>% 
+  tidyr::complete(date = seq.POSIXt(min(date), max(date), by = "hour")) %>% 
+  filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c")  %>% 
+  select(date, diesel:e10)
+
+  
+  
+df %>% 
+  complete(date = seq.POSIXt(min(date), max(date), by = "hour")) %>% 
+  filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c") %>% 
+  select(date, diesel:e10) -> v1
+
+df %>% 
+  complete(date = seq.POSIXt(min(date), max(date), by = "hour")) %>% 
+  filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c") %>% 
+  select(date, diesel:e10)-> v2
+
+df %>% 
+  filter(`uuid` == "e1a15081-2556-9107-e040-0b0a3dfe563c") %>% 
+  complete(date = seq.POSIXt(min(date), max(date), by = "hour")) %>% 
+  select(date, diesel:e10)-> v3
