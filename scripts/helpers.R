@@ -13,7 +13,6 @@ theme_update(
   panel.border = element_rect(fill = NA, color = NA),
   panel.grid.major.x = element_blank(),
   panel.grid.minor = element_blank(),
-  axis.text.x = element_blank(),
   axis.text.y = element_text(size = 10),
   axis.ticks = element_blank(),
   axis.title.y = element_text(size = 13, margin = margin(r = 10)),
